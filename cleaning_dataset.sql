@@ -54,6 +54,9 @@ IGNORE 1 ROWS
     damage_reported
 );
 
+-- Drop the shipments table as per the requirement
+
+DROP TABLE shipments;
 
 -- Create the final table
 
@@ -72,7 +75,6 @@ CREATE TABLE shipments (
     damage_reported VARCHAR(3)
 );
 
-DROP TABLE shipments;
 -- Clean and insert the data
 
 INSERT INTO shipments (
@@ -101,7 +103,7 @@ SELECT
     )) AS origin_warehouse,
     
     CASE
-        WHEN TRIM(destination_city) = '' THEN NULL
+        WHEN TRIM(destination_city) = '' THEN 'Unknown'
         ELSE CONCAT(
             UPPER(LEFT(SUBSTRING_INDEX(TRIM(destination_city), ' ', 1), 1)),
             LOWER(SUBSTRING(SUBSTRING_INDEX(TRIM(destination_city), ' ', 1), 2)),
@@ -116,9 +118,15 @@ SELECT
             )
         )
     END,
-    
+
     UPPER(TRIM(destination_state)),
-    TRIM(carrier),
+
+    CASE
+        WHEN UPPER(TRIM(carrier)) = 'FASTFREIGHT' THEN 'FastFreight'
+        WHEN UPPER(TRIM(carrier)) = 'SPEEDYHAUL' THEN 'SpeedyHaul'
+        WHEN UPPER(TRIM(carrier)) = 'QUICKSHIP' THEN 'QuickShip'
+        ELSE TRIM(carrier)
+    END,
 
     CASE
         WHEN TRIM(ship_date) = '' THEN NULL
