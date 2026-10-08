@@ -72,6 +72,7 @@ CREATE TABLE shipments (
     damage_reported VARCHAR(3)
 );
 
+DROP TABLE shipments;
 -- Clean and insert the data
 
 INSERT INTO shipments (
@@ -90,8 +91,32 @@ INSERT INTO shipments (
 )
 SELECT
     TRIM(shipment_id),
-    TRIM(origin_warehouse),
-    NULLIF(TRIM(destination_city), ''),
+
+    (SELECT CONCAT(
+        UPPER(LEFT(SUBSTRING_INDEX(TRIM(origin_warehouse), ' ', 1), 1)),
+        LOWER(SUBSTRING(SUBSTRING_INDEX(TRIM(origin_warehouse), ' ', 1), 2)),
+        ' ',
+        UPPER(LEFT(SUBSTRING_INDEX(TRIM(origin_warehouse), ' ', -1), 1)),
+        LOWER(SUBSTRING(SUBSTRING_INDEX(TRIM(origin_warehouse), ' ', -1), 2))
+    )) AS origin_warehouse,
+    
+    CASE
+        WHEN TRIM(destination_city) = '' THEN NULL
+        ELSE CONCAT(
+            UPPER(LEFT(SUBSTRING_INDEX(TRIM(destination_city), ' ', 1), 1)),
+            LOWER(SUBSTRING(SUBSTRING_INDEX(TRIM(destination_city), ' ', 1), 2)),
+            IF(
+                TRIM(destination_city) LIKE '% %',
+                CONCAT(
+                    ' ',
+                    UPPER(LEFT(SUBSTRING_INDEX(TRIM(destination_city), ' ', -1), 1)),
+                    LOWER(SUBSTRING(SUBSTRING_INDEX(TRIM(destination_city), ' ', -1), 2))
+                ),
+                ''
+            )
+        )
+    END,
+    
     UPPER(TRIM(destination_state)),
     TRIM(carrier),
 
